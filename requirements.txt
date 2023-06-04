@@ -1,0 +1,6 @@
+flask
+flask_restx
+pandas
+tensorflow
+numpy
+gunicorn==20.1.0
