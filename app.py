@@ -1,50 +1,54 @@
-import pandas as pd
-# import tensorflowjs as tfjs
-# from tensorflow.keras.models import load_model
-from flask import Flask, jsonify, request
-import tensorflow as tf
-from sklearn.preprocessing import MinMaxScaler
+from flask import Flask, request, jsonify
+import joblib
 import numpy as np
-
+import tensorflow as tf
 
 app = Flask(__name__)
 
 # Load the model
-# model = tfjs.converters.load_keras_model("model_tfjs")
-loaded_model = tf.keras.models.load_model("model.h5")
+model = tf.keras.models.load_model('heart_model.h5')
 
+# Load the scaler
+scaler = joblib.load('scaler.pkl')
 
+# @app.route('/predict', methods=['POST'])
+# def predict():
+#     data = request.get_json(force=True)
+#     data_scaled = scaler.transform(np.array([list(data.values())]))
+#     prediction = model.predict(data_scaled)
+#     return jsonify({'prediction': int(prediction[0][0] > 0.5)})
 
-# Define cat_cols globally
-cat_cols = ["gender", "cholesterol", "gluc"]
-num_cols = ["age", "height", "weight"]
-
-# Define the scaler globally
-scaler = MinMaxScaler()
-
-@app.route("/predict", methods=["POST"])
+@app.route('/predict', methods=['POST'])
 def predict():
-    data = request.get_json()
-    df = pd.DataFrame(data, index=[0])
+    # Get incoming JSON data
+    data = request.get_json(force=True)
+    
+    # Assign each feature to its own variable
+    age = data.get('age')
+    gender = data.get('gender')
+    height = data.get('height')
+    weight = data.get('weight')
+    ap_hi = data.get('ap_hi')
+    ap_lo = data.get('ap_lo')
+    cholesterol = data.get('cholesterol')
+    gluc = data.get('gluc')
+    smoke = data.get('smoke')
+    alco = data.get('alco')
+    active = data.get('active')
+    
+    # Construct the input data as an array using the variables
+    input_data = np.array([[age, gender, height, weight, ap_hi, ap_lo, cholesterol, gluc, smoke, alco, active]])
+    
+    # Scale the input data
+    data_scaled = scaler.transform(input_data)
+    
+    # Make a prediction
+    prediction = model.predict(data_scaled)
+    
+    # Convert the prediction to a boolean (1 or 0) and return as a response
+    prediction_bool = int(prediction[0][0] > 0.5)
+    
+    return jsonify({'prediction': prediction_bool})
 
-    # Fit and define the scaler globally
-    scaler = MinMaxScaler()
-    training_data = pd.read_csv("heart.csv")
-    # X_num = scaler.fit_transform(training_data[num_cols])
-    
-    # Preprocess the data
-    X_cat = pd.get_dummies(df[cat_cols], drop_first=True)
-    X_num = scaler.fit_transform(df[num_cols])
-    X_preprocessed = np.concatenate((X_cat, X_num), axis=1)
-    
-    # Make predictions
-    y_pred = loaded_model.predict(X_preprocessed)[0][0]
-    
-    # Return the response
-    if y_pred > 0.5:
-        return jsonify({"result": "cardio_present"})
-    else:
-        return jsonify({"result": "cardio_absent"})
-
-if __name__ == "__main__":
-    app.run(debug=False)
+if __name__ == '__main__':
+    app.run(port=5000, debug=True)
