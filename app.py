@@ -18,6 +18,10 @@ scaler = joblib.load('scaler.pkl')
 #     prediction = model.predict(data_scaled)
 #     return jsonify({'prediction': int(prediction[0][0] > 0.5)})
 
+@app.route('/', methods=['GET'])
+def main():
+    return "Welcome to Our Vardiocascular Predict API"
+
 @app.route('/predict', methods=['POST'])
 def predict():
     # Get incoming JSON data
@@ -51,4 +55,4 @@ def predict():
     return jsonify({'prediction': prediction_bool})
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+   app.run(debug=True)
