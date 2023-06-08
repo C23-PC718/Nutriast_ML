@@ -3,4 +3,5 @@ pandas
 tensorflow
 joblib
 numpy
+scikit-learn
 gunicorn==20.1.0
