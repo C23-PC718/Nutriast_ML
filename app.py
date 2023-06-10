@@ -44,6 +44,7 @@ def predict():
     
     # Construct the input data as an array using the variables
     input_data = np.array([[age, gender, height, weight, ap_hi, ap_lo, cholesterol, gluc, smoke, alco, active]])
+    # input_data = np.array([[55,1,164,62,140,80,1,1,0,0,0]])
     
     # Scale the input data
     data_scaled = scaler.transform(input_data)
